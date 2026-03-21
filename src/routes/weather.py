@@ -36,3 +36,12 @@ def get_weather_data(data_date: Optional[date]= None, city: Optional[str]= None 
     except Exception as err:
         GlobalFunctions.print_error_with_linenumebr(err)
         return printCustmMsg(200, 'FALSE',msg='Something went wrong-->' + str(err))
+    
+@routes.get('/get_city_list')
+def get_city_list(db: Session = Depends(get_db)):
+    try:
+        cities = crud.read_city_list(db)
+        return cities
+    except Exception as err:
+        GlobalFunctions.print_error_with_linenumebr(err)
+        return printCustmMsg(200, 'FALSE', msg='Something went wrong-->' + str(err))

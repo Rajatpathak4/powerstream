@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, SmallInteger, TIMESTAMP, Boolean, DateTime, Float, DATE
+from sqlalchemy import Column, Integer, String, SmallInteger, TIMESTAMP, Boolean, DateTime, Float, DATE, ForeignKey
 from database.database import Base
 from datetime import datetime
 
@@ -7,6 +7,7 @@ class WeatherData(Base):
     __tablename__ = 'weather_data'
     __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True)
+    city_id = Column(Integer, ForeignKey('cities.id'), nullable=False)
     data_date = Column(DATE, nullable=False)
     revision_no = Column(Integer, default=0)
     city = Column(String(255), nullable=False)
@@ -35,4 +36,13 @@ class WeatherData(Base):
     updated_timestamp = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_deleted = Column(Boolean, nullable=False, default=False)
  
+
+class City(Base):
+    __tablename__ = 'cities'
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    city_name = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_deleted = Column(Boolean, default=False)
 

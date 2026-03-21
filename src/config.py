@@ -11,7 +11,9 @@ class Settings:
     PG_DB_PORT: str = os.getenv('POSTGRES_PORT')
     WEATHER_API_KEY: str = os.getenv('WEATHER_API_KEY')
     WEATHER_API_URL: str = os.getenv('WEATHER_API_URL')
-
+    ASSETS= os.path.join(os.getcwd(),"assets/templates")
 @lru_cache()
 def get_setting():
     return Settings()
+
+

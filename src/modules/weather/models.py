@@ -1,0 +1,38 @@
+from sqlalchemy import Column, Integer, String, SmallInteger, TIMESTAMP, Boolean, DateTime, Float, DATE
+from database.database import Base
+from datetime import datetime
+
+
+class WeatherData(Base):
+    __tablename__ = 'weather_data'
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True)
+    data_date = Column(DATE, nullable=False)
+    revision_no = Column(Integer, default=0)
+    city = Column(String(255), nullable=False)
+    temperature = Column(Float)
+    temperature_feels = Column(Float)
+    humidity = Column(Integer)
+    weather_description = Column(String(255))
+    temp_min = Column(Float)
+    temp_max = Column(Float)
+    pressure = Column(Integer)
+    wind_speed = Column(Float)
+    wind_direction = Column(Integer)
+    visibility = Column(Integer)
+    clouds = Column(Integer)
+    country = Column(String(255))
+    sunrise_unix = Column(Integer)
+    sunset_unix = Column(Integer)
+    longitude = Column(Float)
+    latitude = Column(Float)
+    created_by = Column(Integer)
+    created_on = Column(DateTime, default=datetime.utcnow)
+    updated_by = Column(Integer)
+    updated_on = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    deleted_by = Column(Integer)
+    deleted_on = Column(DateTime)
+    updated_timestamp = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_deleted = Column(Boolean, nullable=False, default=False)
+ 
+

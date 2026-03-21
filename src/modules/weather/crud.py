@@ -1,10 +1,11 @@
 from datetime import timedelta, datetime
+import json
 from config import get_setting
 from helper.GlobalFunctions import printCustmMsg,print_error_with_linenumebr
 import requests
-from modules.weather.models import WeatherData
+from modules.weather.models import City, WeatherData
 from sqlalchemy import func
-
+import os
 
 
 configObj = get_setting()
@@ -29,11 +30,19 @@ def fetch_weather_data(city, db):
 
         ext_url = configObj.WEATHER_API_URL + f"/weather?q={city_val}&appid={configObj.WEATHER_API_KEY}&units=metric"
         response = requests.get(ext_url)
+        city_obj = db.query(City).filter(
+            func.lower(City.city_name) == city_val.lower(),
+            City.is_deleted == False
+        ).first()
+
+        if not city_obj:
+            return printCustmMsg(404, 'FALSE', 'City not found in DB')
 
         if response.status_code == 200:
             data = response.json()
             weather = {
                 "city": data["name"],
+                "city_id": city_obj.id,
                 "country": data["sys"]["country"],
                 "temperature": data["main"]["temp"],
                 "temperature_feels": data["main"]["feels_like"],
@@ -106,4 +115,38 @@ def get_latest_weather_data(data_date, city, db):
         print_error_with_linenumebr(err)
         return printCustmMsg(500, 'FALSE', msg='Something went wrong-->' + str(err))
 
+def read_city_list(db):
+    try:
+        filename = "cities.json"
+        
+        file_path = os.path.join(configObj.ASSETS,  filename)
+        cities = []
 
+        with open(file_path, 'r', encoding='utf-8') as file:
+            reader = json.load(file)
+            for row in reader:
+                cities.append(row) 
+
+        for city in cities:
+            city_name = city.get('city', '').strip().capitalize()
+
+            if city_name:
+                existing_city = db.query(City).filter(
+                    City.city_name == city_name,
+                    City.is_deleted == False).first()
+
+                if not existing_city:
+                    new_city = City(city_name=city_name,
+                                     created_at=datetime.now(), 
+                                     updated_at=datetime.now(),
+                                     is_deleted=False
+                                    )
+                    db.add(new_city)
+        db.commit()
+        return cities
+
+    except Exception as err:
+        print_error_with_linenumebr(err)
+        return printCustmMsg(500, 'FALSE', msg='Something went wrong-->' + str(err))
+    
+   

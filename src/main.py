@@ -17,6 +17,8 @@ import os
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta
+from routes import (weather)
+
 
 @lru_cache
 def get_settings():
@@ -39,13 +41,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# app.add_middleware(SessionMiddleware, secret_key="4cab2a2db6a3c31b01d804def28276e", max_age=36000)
-
-if not os.path.exists('static/'):
-    os.makedirs('static/')
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
+app.include_router(weather.routes)  # Assuming 'routes' is defined in the imported weather module
 
 @app.get('/docs')
 def docs():

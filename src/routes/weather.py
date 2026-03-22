@@ -65,4 +65,23 @@ def add_city_list(db: Session = Depends(get_db)):
     except Exception as err:
         GlobalFunctions.print_error_with_linenumebr(err)
         return printCustmMsg(200, 'FALSE', msg='Something went wrong-->' + str(err))
+
+@routes.get('/crawl_actual_data')
+def fetch_actual_data(background_tasks: BackgroundTasks, data_date : Optional[date]= None, db: Session= Depends(get_transaction_db)):
+    try:
+        if data_date is None:
+            data_date = datetime.now().date()
+        background_tasks.add_task(run_in_background,fetch_actual_weather_data, data_date, db)
+        return {"Actual weather data crawl started in background"}
+    except Exception as err:
+        GlobalFunctions.print_error_with_linenumebr(err)
+        return printCustmMsg(200, 'FALSE',msg='Something went wrong-->' + str(err))
     
+def fetch_actual_weather_data(data_date, db: Session= Depends(get_transaction_db)):
+    try:
+        response = crud.crawling_actual_data(data_date, db)
+        return response
+
+    except Exception as err:
+        GlobalFunctions.print_error_with_linenumebr(err)
+        return printCustmMsg(200, 'FALSE', msg='Something went wrong-->' + str(err))

@@ -61,10 +61,16 @@ def scheduler_task():
         weather.fetch_weather_data_crawl(db)
 
 
+def actual_data_scheduler_task():
+    with next(get_transaction_db()) as db:
+        weather.fetch_actual_weather_data(data_date=None, db=db)
+
 @app.on_event("startup")
 def startup_event():
     scheduler.add_job(scheduler_task, 'interval', hours=6)
     print("Scheduler started for weather data.")
+    scheduler.add_job(actual_data_scheduler_task, 'interval', minutes=5)
+    print("Scheduler started for actual data insertion in db.")
     scheduler.start()
 
 @app.on_event("shutdown")

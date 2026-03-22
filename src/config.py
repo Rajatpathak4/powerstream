@@ -12,6 +12,7 @@ class Settings:
     WEATHER_API_KEY: str = os.getenv('WEATHER_API_KEY')
     WEATHER_API_URL: str = os.getenv('WEATHER_API_URL')
     ASSETS= os.path.join(os.getcwd(),"assets/templates")
+    ACTUAL_API_URL : str = os.getenv('ACTUAL_API_URL')
 @lru_cache()
 def get_setting():
     return Settings()

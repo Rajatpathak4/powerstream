@@ -3,7 +3,7 @@ import json
 from config import get_setting
 from helper.GlobalFunctions import printCustmMsg,print_error_with_linenumebr
 import requests
-from modules.weather.models import City, WeatherData
+from modules.weather.models import ActualData, ActualTableData, City, WeatherData
 from sqlalchemy import func
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -201,3 +201,30 @@ def read_city_list(db):
         print_error_with_linenumebr(err)
         return printCustmMsg(500, 'FALSE', msg='Something went wrong-->' + str(err))
 
+def crawling_actual_data(data_date, db):
+    try:
+        if data_date is None:
+            data_date = datetime.now().date()
+        api_url = f"{configObj.ACTUAL_API_URL}?date={data_date}"
+        response = requests.get(api_url)
+
+        if response.status_code == 200:
+            data = json.loads(response.text)  
+            for item in data:
+                record_dict = {
+                    "data_date": data_date,
+                    "source": item.get('name_of_data'),
+                    "actual_demand":item.get('value_of_data'),
+                    "created_at": datetime.now(),
+                    "updated_at": datetime.now(),
+                    "created_by": None,
+                    "updated_by": None,
+                }
+
+                data_obj = ActualData(**record_dict)
+                db.add(data_obj)
+            db.commit()
+        return printCustmMsg(200, 'TRUE', 'Actual data added successfully')
+    except Exception as err:
+        print_error_with_linenumebr(err)
+        return printCustmMsg(500, 'FALSE', msg='Something went wrong-->' + str(err))    

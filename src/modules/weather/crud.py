@@ -6,40 +6,67 @@ import requests
 from modules.weather.models import City, WeatherData
 from sqlalchemy import func
 import os
+from concurrent.futures import ThreadPoolExecutor
+from database.database import SessionLocal
+import time
+import threading
+
+api_call_count = 0
+lock = threading.Lock()
 
 
 configObj = get_setting()
 
-def fetch_weather_data(city, db):
+def get_cities_from_json(db):
     try:
-        if not city:
-            return printCustmMsg(200, 'FALSE', 'Select Valid City')
+        city_val = []
+        cities = db.query(City.city_name).filter(City.is_deleted == False).all()
+        if not cities:
+            return printCustmMsg(200, 'FALSE', 'No cities found')
+        city_val = [city.city_name for city in cities]
+        return printCustmMsg(200, 'TRUE', 'Cities fetched successfully', city_val)
 
-        city_val = city.strip().capitalize()
+    except Exception as err:
+        print_error_with_linenumebr(err)
+        return printCustmMsg(500, 'FALSE', msg='Something went wrong-->' + str(err))
+    
+def fetch_and_save_weather_data(city_name):
+    db = SessionLocal() 
+    global api_call_count
+    try:
         data_date = datetime.now().date()
 
         latest_rev = db.query(WeatherData).filter(
-            func.lower(WeatherData.city) == city_val.lower(),
+            func.lower(WeatherData.city) == city_name.lower(),
             WeatherData.is_deleted == False,
             WeatherData.data_date == data_date
         ).order_by(WeatherData.revision_no.desc()).first()
-        if latest_rev:
-            revision_no = latest_rev.revision_no + 1
-        else:
-            revision_no = 0
 
-        ext_url = configObj.WEATHER_API_URL + f"/weather?q={city_val}&appid={configObj.WEATHER_API_KEY}&units=metric"
+        revision_no = latest_rev.revision_no + 1 if latest_rev else 0
+
+        ext_url = configObj.WEATHER_API_URL + f"/weather?q={city_name}&appid={configObj.WEATHER_API_KEY}&units=metric"
         response = requests.get(ext_url)
+        with lock:
+            api_call_count += 1
+            print(api_call_count,'api_call_count')
+
+            if api_call_count == 999:
+                print("API hit count reached 999")
+            elif api_call_count >= 1000:
+                print("API hit count reached 1000")
+                return printCustmMsg(200, 'FALSE', 'API hit count reached 1000')
+
         city_obj = db.query(City).filter(
-            func.lower(City.city_name) == city_val.lower(),
+            func.lower(City.city_name) == city_name.lower(),
             City.is_deleted == False
         ).first()
 
         if not city_obj:
-            return printCustmMsg(404, 'FALSE', 'City not found in DB')
+            return
 
         if response.status_code == 200:
             data = response.json()
+
             weather = {
                 "city": data["name"],
                 "city_id": city_obj.id,
@@ -62,37 +89,62 @@ def fetch_weather_data(city, db):
                 "data_date": data_date,
                 "revision_no": revision_no,
             }
+
             weather_obj = WeatherData(**weather)
             db.add(weather_obj)
             db.commit()
-            db.refresh(weather_obj)
-            return printCustmMsg(200, 'TRUE', 'Weather data saved successfully', weather)
-
-        elif response.status_code == 404:
-            return printCustmMsg(200, 'FALSE', 'City not found!')
-
-        elif response.status_code == 401:
-            return printCustmMsg(200, 'FALSE', 'Invalid API Key!')
-
-        else:
-            return printCustmMsg(200, 'FALSE', f'API Error --> {response.status_code}')
 
     except Exception as err:
         db.rollback()
         print_error_with_linenumebr(err)
         return printCustmMsg(500, 'FALSE', msg='Something went wrong-->' + str(err))
-    
+    finally:
+        db.close()  
 
+def chunk_list(data, chunk_size):
+    for i in range(0, len(data), chunk_size):
+        yield data[i:i + chunk_size]
+
+def fetch_weather_data(db):
+    try:
+        cities_response = get_cities_from_json(db)
+
+        if cities_response['status'] != 'TRUE':
+            return cities_response
+
+        city_list = cities_response['value']
+
+        worker = 10
+        chunk_size = 100
+
+        for chunk in chunk_list(city_list, chunk_size):
+            print(f"Processing batch of {len(chunk)} cities")
+
+            with ThreadPoolExecutor(max_workers=worker) as executor:
+                executor.map(fetch_and_save_weather_data, chunk)
+
+            print("Sleeping for 5 seconds...")
+            time.sleep(5)
+
+        return printCustmMsg(200, 'TRUE', 'Weather data fetched successfully')
+
+    except Exception as err:
+        print_error_with_linenumebr(err)
+        return printCustmMsg(500, 'FALSE', msg='Something went wrong-->' + str(err))
+    
 def get_latest_weather_data(data_date, city, db):
     try:
-        lastest_revision = db.query(func.max(WeatherData.revision_no)).filter(
-            WeatherData.is_deleted == False,
-            WeatherData.data_date == data_date
-        ).scalar()
+        lastest_revision = db.query(func.max(WeatherData.revision_no)).filter(WeatherData.is_deleted == False, WeatherData.data_date == data_date).scalar()
         if lastest_revision is None:
             return printCustmMsg(200, 'FALSE', 'No data found for the specified date and city')
-        query = db.query(WeatherData).filter(WeatherData.is_deleted == False, WeatherData.revision_no == lastest_revision)
-
+        # ----------------------- Get City Wise List ------------------ -----
+        query = db.query(WeatherData)\
+            .join(City, WeatherData.city_id == City.id)\
+            .filter(
+                WeatherData.revision_no == lastest_revision,
+                WeatherData.is_deleted == False,
+                City.is_deleted == False
+            )
         if city:
             city_val = city.strip().capitalize()
             query = query.filter(WeatherData.city == city_val)
@@ -148,5 +200,4 @@ def read_city_list(db):
     except Exception as err:
         print_error_with_linenumebr(err)
         return printCustmMsg(500, 'FALSE', msg='Something went wrong-->' + str(err))
-    
-   
+

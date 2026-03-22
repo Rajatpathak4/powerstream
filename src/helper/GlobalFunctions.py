@@ -1,6 +1,8 @@
 from fastapi.responses import JSONResponse
 from datetime import timedelta
 import sys, os
+from concurrent.futures import ThreadPoolExecutor
+
 
 
 
@@ -21,3 +23,7 @@ def print_error_with_linenumebr(e):
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]        
     print(exc_type, fname, exc_tb.tb_lineno)
     print(str(e))
+
+def run_in_background(func, *args):
+    executor = ThreadPoolExecutor()
+    executor.submit(func, *args)

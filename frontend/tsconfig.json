@@ -1,0 +1,35 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+     "paths": {
+      "src/*": ["src/*"]
+    },
+    "baseUrl": "./",
+    "resolveJsonModule": true,
+    "downlevelIteration": true,
+    "module": "es2020",
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "ES2022",
+    "strict": false,
+    "strictPropertyInitialization": false,
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "lib": [
+      "es2017",
+      "dom"
+    ]
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": false,
+    "allowSyntheticDefaultImports":true
+    },
+  }

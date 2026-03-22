@@ -46,3 +46,25 @@ class City(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_deleted = Column(Boolean, default=False)
 
+class ActualData(Base):
+    __tablename__ = 'actual_data'
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    data_date = Column(DATE, nullable=False)
+    source = Column(String(255), nullable=False)
+    actual_demand = Column(Float, nullable=False)
+    file_name= Column(String(255), nullable=False)
+    file_path = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.now())
+    updated_at = Column(DateTime, default=datetime.now(), onupdate=datetime.utcnow)
+    created_by = Column(Integer)
+    updated_by = Column(Integer)
+    is_deleted = Column(Boolean, default=False)
+
+class ActualTableData(Base):
+    __tablename__ = 'actual_table_data'
+    __table_args__ = {'extend_existing': True}
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    actual_data_id= Column(Integer, ForeignKey('actual_data.id'), nullable=False)
+    block_no= Column(Integer, nullable=False)
+    block_value= Column(Float, nullable=False)

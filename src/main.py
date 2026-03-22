@@ -13,7 +13,6 @@ from routes import (weather)
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
 
-
 @lru_cache
 def get_settings():
     return Settings()
@@ -35,7 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(weather.routes)  # Assuming 'routes' is defined in the imported weather module
+app.include_router(weather.routes) 
 
 @app.get('/docs')
 def docs():
@@ -59,13 +58,13 @@ async def add_process_time_header(request: Request, call_next):
 scheduler = BackgroundScheduler()
 def scheduler_task():
     with next(get_transaction_db()) as db:
-        weather.fetch_weather_data( city=None, db=db)
+        weather.fetch_weather_data_crawl(db)
 
 
 @app.on_event("startup")
 def startup_event():
-    scheduler.add_job(scheduler_task, 'interval', seconds=10)
-    print("Scheduler started for weather data fetching every 1 minute.")
+    scheduler.add_job(scheduler_task, 'interval', hours=6)
+    print("Scheduler started for weather data.")
     scheduler.start()
 
 @app.on_event("shutdown")

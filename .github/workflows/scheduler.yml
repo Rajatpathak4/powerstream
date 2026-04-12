@@ -8,19 +8,26 @@ on:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
     steps:
       - uses: actions/checkout@v4
         with:
           ref: development
+      - name: Debug - Show exact structure
+        run: |
+          echo "=== ROOT ==="
+          ls -la
+          echo "=== BACKEND ==="
+          ls -la backend/
+          echo "=== BACKEND/SRC ==="
+          ls -la backend/src/
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Install dependencies
+        working-directory: backend
         run: pip install -r requirements.txt
       - name: Run script
+        working-directory: backend
         env:
           WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
           WEATHER_API_URL: ${{ secrets.WEATHER_API_URL }}

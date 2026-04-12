@@ -2,8 +2,8 @@ name: Fetch Data Scheduler
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Runs every 6 hours
-  workflow_dispatch:         # Lets you run it manually too
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   fetch:
@@ -20,5 +20,6 @@ jobs:
 
       - name: Run script
         env:
-          API_KEY: ${{ secrets.API_KEY }}
-        run: python main.py
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+          WEATHER_API_URL: ${{ secrets.WEATHER_API_URL }}
+        run: python main.py  # ← your filename

@@ -1,0 +1,38 @@
+name: Fetch Data Scheduler
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: development
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Debug structure
+        run: |
+          echo "ROOT:"
+          ls -la
+          echo "BACKEND:"
+          ls -la backend
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run script
+        env:
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+          WEATHER_API_URL: ${{ secrets.WEATHER_API_URL }}
+          ACTUAL_API_URL: ${{ secrets.ACTUAL_API_URL }}
+        run: python backend/src/main.py

@@ -32,4 +32,9 @@ jobs:
           WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
           WEATHER_API_URL: ${{ secrets.WEATHER_API_URL }}
           ACTUAL_API_URL: ${{ secrets.ACTUAL_API_URL }}
+          POSTGRES_SERVER: ${{ secrets.POSTGRES_SERVER }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
         run: python src/main.py

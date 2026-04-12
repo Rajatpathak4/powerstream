@@ -93,6 +93,8 @@ def fetch_and_save_weather_data(city_name):
             weather_obj = WeatherData(**weather)
             db.add(weather_obj)
             db.commit()
+        else:
+            return printCustmMsg(200, 'FALSE', f"Failed to fetch weather data for {city_name}. Status code: {response.status_code}")
 
     except Exception as err:
         db.rollback()
@@ -224,7 +226,9 @@ def crawling_actual_data(data_date, db):
                 data_obj = ActualData(**record_dict)
                 db.add(data_obj)
             db.commit()
-        return printCustmMsg(200, 'TRUE', 'Actual data added successfully')
+            return printCustmMsg(200, 'TRUE', 'Actual weather data fetched and saved successfully')
+        else: 
+            return printCustmMsg(200, 'TRUE', 'Actual data added successfully')
     except Exception as err:
         print_error_with_linenumebr(err)
         return printCustmMsg(500, 'FALSE', msg='Something went wrong-->' + str(err))    

@@ -8,19 +8,23 @@ on:
 jobs:
   fetch:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend    # ← tells GitHub to look inside backend folder
     steps:
       - uses: actions/checkout@v4
         with:
           ref: development
+      - name: Debug - Show file structure
+        run: |
+          pwd
+          ls -la
+          ls -la backend/ || echo "no backend folder"
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Install dependencies
+        working-directory: backend
         run: pip install -r requirements.txt
       - name: Run script
+        working-directory: backend
         env:
           WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
           WEATHER_API_URL: ${{ secrets.WEATHER_API_URL }}

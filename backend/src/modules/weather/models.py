@@ -60,11 +60,3 @@ class ActualData(Base):
     created_by = Column(Integer)
     updated_by = Column(Integer)
     is_deleted = Column(Boolean, default=False)
-
-class ActualTableData(Base):
-    __tablename__ = 'actual_table_data'
-    __table_args__ = {'extend_existing': True}
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    actual_data_id= Column(Integer, ForeignKey('actual_data.id'), nullable=False)
-    block_no= Column(Integer, nullable=False)
-    block_value= Column(Float, nullable=False)

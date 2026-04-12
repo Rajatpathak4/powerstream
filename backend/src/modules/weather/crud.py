@@ -3,7 +3,7 @@ import json
 from config import get_setting
 from helper.GlobalFunctions import printCustmMsg,print_error_with_linenumebr
 import requests
-from modules.weather.models import ActualData, ActualTableData, City, WeatherData
+from modules.weather.models import ActualData, City, WeatherData
 from sqlalchemy import func
 import os
 from concurrent.futures import ThreadPoolExecutor
